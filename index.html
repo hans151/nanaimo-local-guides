@@ -682,7 +682,7 @@
         <input type="tel" class="form-input form-input-full" id="lead-phone" placeholder="Mobile number (for text plan)" autocomplete="tel">
 
         <div class="opt-in-row" id="opt-in-row" onclick="toggleOptIn()">
-          <input type="checkbox" class="opt-in-checkbox" id="opt-in-cb" required>
+          <input type="checkbox" class="opt-in-checkbox" id="opt-in-cb" required onclick="event.stopPropagation()">
           <label class="opt-in-label" for="opt-in-cb" onclick="event.stopPropagation()">
             I agree to receive my weekend plan and occasional local tips from Hans Suhr.
             <a href="/unsubscribe" onclick="event.stopPropagation()">Unsubscribe</a> at any time.
