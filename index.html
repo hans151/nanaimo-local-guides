@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Nanaimo Weekend Planner | Hans Suhr Local Guides</title>
+  <meta name="description" content="Get a free personalized Nanaimo weekend plan built for your neighbourhood, crew, and vibe — in about two minutes.">
+  <meta property="og:title" content="Nanaimo Weekend Planner — Free">
+  <meta property="og:description" content="A personalized Nanaimo weekend plan built for your crew and vibe in 2 minutes.">
+  <meta property="og:url" content="https://nanaimo-local-guides.pages.dev">
+  <!-- Vapi Web SDK -->
+  <script src="https://cdn.vapi.ai/web-sdk/0.0.7/vapi.iife.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #E31837;
+      --navy: #1A2B4A;
+      --navy-light: #2C4A7A;
+      --white: #FFFFFF;
+      --off-white: #F8F9FA;
+      --gray: #6B7280;
+      --light-gray: #E5E7EB;
+      --green: #10B981;
+      --shadow: 0 4px 24px rgba(26,43,74,0.12);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--off-white);
+      color: var(--navy);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+    .site-header .brand { display: flex; align-items: center; gap: 10px; }
+    .logo-badge {
+      background: var(--red);
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .brand-name { font-size: 15px; font-weight: 600; opacity: 0.9; }
+    .free-badge {
+      background: var(--green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(140deg, var(--navy) 0%, var(--navy-light) 100%);
+      color: #fff;
+      padding: 52px 20px 44px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 6vw, 42px);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      font-size: 17px;
+      opacity: 0.85;
+      max-width: 440px;
+      margin: 0 auto 30px;
+      line-height: 1.5;
+    }
+
+    /* Sample preview card */
+    .sample-preview {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: var(--radius);
+      padding: 16px;
+      max-width: 440px;
+      margin: 0 auto 30px;
+      text-align: left;
+    }
+    .preview-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.6;
+      margin-bottom: 12px;
+    }
+    .preview-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .preview-item:last-child { border-bottom: none; }
+    .preview-item .pi-title { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+    .preview-item .pi-meta { font-size: 12px; opacity: 0.7; }
+    .preview-item .pi-desc { font-size: 13px; opacity: 0.85; margin-top: 4px; line-height: 1.4; }
+    .preview-cta { font-size: 13px; opacity: 0.7; text-align: center; margin-top: 12px; font-style: italic; }
+
+    /* Hero buttons */
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-voice, .btn-chat {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 24px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .btn-voice {
+      background: var(--red); color: #fff;
+      box-shadow: 0 4px 20px rgba(227,24,55,0.4);
+    }
+    .btn-voice:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(227,24,55,0.5); }
+    .btn-chat {
+      background: rgba(255,255,255,0.15); color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.4);
+    }
+    .btn-chat:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Main content ── */
+    .main-content { max-width: 520px; margin: 0 auto; padding: 20px 16px 80px; }
+
+    .section { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+    .section-header { padding: 22px 20px 0; }
+    .section-title { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .section-subtitle { font-size: 14px; color: var(--gray); margin-bottom: 16px; line-height: 1.5; }
+
+    /* ── Voice section ── */
+    .voice-body { padding: 24px 20px; text-align: center; }
+    .voice-orb {
+      width: 76px; height: 76px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px; font-size: 28px; cursor: pointer;
+      transition: transform 0.2s; box-shadow: var(--shadow);
+    }
+    .voice-orb:hover { transform: scale(1.05); }
+    .voice-orb.active {
+      background: linear-gradient(135deg, var(--red), #c41230);
+      animation: orbPulse 1.5s infinite;
+    }
+    @keyframes orbPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(227,24,55,0.4); }
+      50% { box-shadow: 0 0 0 18px rgba(227,24,55,0); }
+    }
+    .voice-status { font-size: 14px; color: var(--gray); margin-bottom: 16px; min-height: 20px; }
+    .voice-status.connected { color: var(--green); font-weight: 600; }
+    .voice-status.listening { color: var(--red); font-weight: 600; }
+    .btn-start-voice {
+      background: var(--navy); color: #fff; border: none;
+      padding: 14px 28px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s; margin-bottom: 10px;
+    }
+    .btn-start-voice:hover { background: var(--navy-light); transform: translateY(-1px); }
+    .mic-note { font-size: 12px; color: var(--gray); display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .voice-controls { display: none; gap: 12px; justify-content: center; margin-top: 16px; }
+    .voice-controls.visible { display: flex; }
+    .btn-end-call {
+      background: var(--red); color: #fff; border: none;
+      padding: 10px 22px; border-radius: 50px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-end-call:hover { background: #c41230; }
+
+    /* ── Spinner / building ── */
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--light-gray);
+      border-top-color: var(--navy);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .building-steps { list-style: none; text-align: left; max-width: 260px; margin: 0 auto; }
+    .building-steps li { padding: 6px 0; font-size: 14px; color: var(--gray); display: flex; align-items: center; gap: 8px; }
+    .building-steps li.active { color: var(--navy); font-weight: 700; }
+    .building-steps li.done { color: var(--green); }
+
+    /* ── Quiz ── */
+    .quiz-container { padding: 24px 20px; }
+    .quiz-progress { display: flex; gap: 4px; margin-bottom: 24px; }
+    .progress-dot { flex: 1; height: 4px; background: var(--light-gray); border-radius: 2px; transition: background 0.3s; }
+    .progress-dot.active { background: var(--navy); }
+    .progress-dot.done { background: var(--green); }
+    .quiz-step { display: none; }
+    .quiz-step.active { display: block; }
+    .quiz-question { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 20px; line-height: 1.3; }
+    .quiz-hint { font-size: 13px; color: var(--gray); margin-bottom: 14px; margin-top: -12px; }
+    .quiz-options { display: grid; gap: 10px; }
+    .quiz-options.grid-2 { grid-template-columns: 1fr 1fr; }
+    .option-btn {
+      background: var(--off-white); border: 2px solid var(--light-gray);
+      border-radius: var(--radius-sm); padding: 14px 16px;
+      cursor: pointer; font-size: 15px; font-weight: 600; color: var(--navy);
+      text-align: left; transition: all 0.15s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .option-btn:hover { border-color: var(--navy); background: #fff; }
+    .option-btn.selected { border-color: var(--navy); background: var(--navy); color: #fff; }
+    .option-btn.multi-selected { border-color: var(--green); background: #f0fdf4; color: var(--navy); }
+    .quiz-nav { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
+    .btn-back {
+      background: none; border: none; color: var(--gray);
+      cursor: pointer; font-size: 14px; font-weight: 600;
+      padding: 10px 4px; display: flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+    }
+    .btn-continue {
+      flex: 1; background: var(--navy); color: #fff; border: none;
+      padding: 14px 24px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-continue:hover { background: var(--navy-light); transform: translateY(-1px); }
+    .btn-continue:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+    .btn-build {
+      flex: 1; background: var(--red); color: #fff; border: none;
+      padding: 14px 24px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(227,24,55,0.3);
+    }
+    .btn-build:hover { background: #c41230; transform: translateY(-2px); }
+    .name-input {
+      width: 100%; padding: 16px; border: 2px solid var(--light-gray);
+      border-radius: var(--radius-sm); font-size: 18px; font-weight: 600;
+      color: var(--navy); outline: none; transition: border-color 0.2s; background: var(--off-white);
+    }
+    .name-input:focus { border-color: var(--navy); background: #fff; }
+
+    /* ── Plan section ── */
+    #plan-section { display: none; }
+    #plan-section.visible { display: block; }
+    .plan-header {
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      color: #fff; padding: 24px 20px 16px;
+    }
+    .plan-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .plan-header p { font-size: 14px; opacity: 0.8; }
+    .plan-body { padding: 20px; position: relative; }
+    .plan-blurred { filter: blur(6px); pointer-events: none; user-select: none; transition: filter 0.5s; }
+    .plan-revealed { filter: none; pointer-events: auto; user-select: auto; }
+    .blur-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding: 20px 20px 28px; text-align: center;
+      background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.6) 25%, rgba(255,255,255,0.97) 55%);
+    }
+    .blur-overlay.hidden { display: none; }
+    .countdown-badge {
+      display: inline-block; background: var(--red); color: #fff;
+      font-size: 13px; font-weight: 700; padding: 4px 14px;
+      border-radius: 20px; margin-bottom: 10px;
+    }
+    .blur-cta { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+    .blur-sub { font-size: 14px; color: var(--gray); }
+
+    /* Plan item cards */
+    .plan-item {
+      background: var(--off-white); border-radius: var(--radius-sm);
+      padding: 14px; margin-bottom: 10px; border-left: 3px solid var(--navy);
+    }
+    .plan-item:last-child { margin-bottom: 0; }
+    .pi-row { display: flex; align-items: flex-start; gap: 10px; }
+    .pi-emoji { font-size: 22px; padding-top: 2px; }
+    .pi-name { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 3px; }
+    .pi-meta { font-size: 12px; color: var(--gray); margin-bottom: 5px; }
+    .pi-desc { font-size: 14px; color: #374151; line-height: 1.4; }
+
+    /* Share row */
+    .share-section { padding: 16px 20px; border-top: 1px solid var(--light-gray); display: none; }
+    .share-title { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .share-note { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
+    .share-buttons { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn-share {
+      background: var(--off-white); border: 1.5px solid var(--light-gray);
+      border-radius: 50px; padding: 10px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer; color: var(--navy);
+      display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .btn-share:hover { border-color: var(--navy); background: #fff; }
+    .copy-confirm { font-size: 13px; color: var(--green); font-weight: 600; display: none; }
+
+    /* ── Lead capture ── */
+    #lead-form-section { padding: 0 20px 24px; }
+    .lead-capture {
+      background: linear-gradient(135deg, #f0f4ff, #fff8f8);
+      border: 1.5px solid var(--light-gray);
+      border-radius: var(--radius); padding: 24px 20px; margin-top: 8px;
+    }
+    .lead-capture h3 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .lead-sub { font-size: 14px; color: var(--gray); margin-bottom: 20px; line-height: 1.5; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .form-input {
+      width: 100%; padding: 13px 14px;
+      border: 2px solid var(--light-gray); border-radius: var(--radius-sm);
+      font-size: 15px; color: var(--navy); outline: none;
+      transition: border-color 0.2s; background: #fff; -webkit-appearance: none;
+    }
+    .form-input:focus { border-color: var(--navy); }
+    .form-input.error { border-color: var(--red); }
+    .form-input::placeholder { color: #9CA3AF; }
+    .form-input-full { width: 100%; margin-bottom: 10px; }
+
+    /* Opt-in checkbox row */
+    .opt-in-row {
+      display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 18px;
+      padding: 14px; background: #fff; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--light-gray); cursor: pointer;
+    }
+    .opt-in-row.error-border { border-color: var(--red); background: #fff5f5; }
+    .opt-in-checkbox {
+      width: 22px; height: 22px; min-width: 22px;
+      accent-color: var(--navy); cursor: pointer; margin-top: 1px;
+    }
+    .opt-in-label { font-size: 13px; color: #374151; line-height: 1.5; cursor: pointer; }
+    .opt-in-label a { color: var(--navy); text-decoration: underline; }
+
+    .form-error { font-size: 13px; color: var(--red); margin-bottom: 12px; display: none; padding: 10px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #fecaca; }
+    .form-error.visible { display: block; }
+
+    .btn-claim {
+      width: 100%; background: var(--red); color: #fff; border: none;
+      padding: 17px; border-radius: 50px; font-size: 17px; font-weight: 800;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(227,24,55,0.3);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-claim:hover { background: #c41230; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(227,24,55,0.4); }
+    .btn-claim:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+
+    /* Success */
+    .success-state { display: none; padding: 32px 20px; text-align: center; }
+    .success-state.visible { display: block; }
+    .success-icon { font-size: 52px; margin-bottom: 16px; animation: bounceIn 0.5s; }
+    @keyframes bounceIn { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .success-state h3 { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+    .success-state p { font-size: 15px; color: var(--gray); margin-bottom: 22px; }
+    .btn-restart {
+      background: none; border: 2px solid var(--light-gray); color: var(--gray);
+      padding: 12px 24px; border-radius: 50px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-restart:hover { border-color: var(--navy); color: var(--navy); }
+
+    /* Voice build overlay */
+    .voice-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(26,43,74,0.88); z-index: 200;
+      flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; text-align: center; padding: 24px;
+    }
+    .voice-overlay.visible { display: flex; }
+    .voice-overlay .spinner { border-color: rgba(255,255,255,0.25); border-top-color: #fff; width: 48px; height: 48px; margin-bottom: 24px; }
+    .voice-overlay h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .voice-overlay p { font-size: 14px; opacity: 0.8; }
+
+    /* ── Footer ── */
+    .site-footer { background: var(--navy); color: #fff; padding: 36px 20px; text-align: center; }
+    .remax-badge {
+      display: inline-block; background: var(--red); color: #fff;
+      font-weight: 800; font-size: 12px; padding: 4px 12px; border-radius: 4px;
+      letter-spacing: 0.5px; margin-bottom: 10px;
+    }
+    .footer-name { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+    .footer-sub { font-size: 13px; opacity: 0.65; margin-bottom: 18px; }
+    .footer-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .footer-links a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-copy { font-size: 12px; opacity: 0.35; }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .form-row { grid-template-columns: 1fr; }
+      .quiz-options.grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Scroll anchors */
+    #quiz-section, #plan-section { scroll-margin-top: 20px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-name">Nanaimo Local Guides</span>
+  </div>
+  <span class="free-badge">FREE</span>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <h1>Your Perfect Nanaimo Weekend Starts Here</h1>
+  <p>Get a personalized plan built for your neighbourhood, your crew, and your vibe — in about two minutes.</p>
+
+  <div class="sample-preview">
+    <div class="preview-label">Here's what your plan looks like</div>
+    <div class="preview-item">
+      <div class="pi-title">☕ The Vault Café</div>
+      <div class="pi-meta">📍 Old City Quarter &nbsp;⏰ 9:00 AM &nbsp;$</div>
+      <div class="pi-desc">Heritage building, exposed brick, exceptional eggs benny. Locals don't keep this one quiet long.</div>
+    </div>
+    <div class="preview-item">
+      <div class="pi-title">🏝️ Newcastle Island Provincial Marine Park</div>
+      <div class="pi-meta">📍 Nanaimo Harbour &nbsp;⏰ 11:00 AM &nbsp;Free–$</div>
+      <div class="pi-desc">10-minute passenger ferry from downtown. Walk the shoreline trail, find a beach, watch the seals.</div>
+    </div>
+    <div class="preview-item">
+      <div class="pi-title">🍟 Pirate Chips</div>
+      <div class="pi-meta">📍 Downtown Harbour &nbsp;⏰ 1:00 PM &nbsp;$$</div>
+      <div class="pi-desc">Famous halibut and chips, paper cone, eaten on the harbour wall. This one you'll tell people about.</div>
+    </div>
+    <div class="preview-cta">Your plan has <strong>6–8 stops</strong> like this, mapped + linked. Takes 2 min to build.</div>
+  </div>
+
+  <div class="hero-buttons">
+    <button class="btn-voice" onclick="scrollToVoice()">🎙️ Talk to Aime</button>
+    <button class="btn-chat" onclick="scrollToChat()">💬 Chat with Aime</button>
+  </div>
+</section>
+
+<!-- ── MAIN ── -->
+<div class="main-content">
+
+  <!-- VOICE SECTION -->
+  <div class="section" id="voice-section">
+    <div class="section-header">
+      <div class="section-title">Talk to Aime</div>
+      <div class="section-subtitle">Tap the mic and answer a few questions. Your personalized plan gets built from the conversation — then sent straight to your phone or email.</div>
+    </div>
+    <div class="voice-body" id="voice-ui">
+      <div class="voice-orb" id="voice-orb" onclick="toggleVoice()">🎙️</div>
+      <div class="voice-status" id="voice-status"></div>
+      <button class="btn-start-voice" id="btn-start-voice" onclick="toggleVoice()">
+        🎙️ Start My Voice Plan
+      </button>
+      <p class="mic-note">🔒 Mic is only active during the conversation</p>
+      <div class="voice-controls" id="voice-controls">
+        <button class="btn-end-call" onclick="endVoiceCall()">End Call</button>
+      </div>
+    </div>
+    <div id="voice-building" class="hidden" style="padding:28px 20px;text-align:center;">
+      <div class="spinner"></div>
+      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:14px;">Building your plan...</div>
+      <div style="font-size:14px;color:var(--gray);">Give us about 15 seconds. We'll scroll you down when it's ready.</div>
+    </div>
+  </div>
+
+  <!-- QUIZ SECTION -->
+  <div class="section" id="quiz-section">
+    <div class="section-header">
+      <div class="section-title">Chat with Aime</div>
+      <div class="section-subtitle">Aime is your personal Nanaimo concierge — she'll build your itinerary through a quick conversation.</div>
+    </div>
+    <div class="quiz-container">
+
+      <div class="quiz-progress" id="quiz-progress"></div>
+
+      <!-- Step 0: Name -->
+      <div class="quiz-step active" data-step="0">
+        <div class="quiz-question">First, what's your name?</div>
+        <input type="text" class="name-input" id="name-input" placeholder="Your first name" autocomplete="given-name">
+        <div class="quiz-nav">
+          <button class="btn-continue" id="btn-continue-0" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 1: Group -->
+      <div class="quiz-step" data-step="1">
+        <div class="quiz-question">Who's joining you, <span class="name-ph"></span>?</div>
+        <div class="quiz-options grid-2">
+          <button class="option-btn" data-value="solo" onclick="selectOption(this,1)">🧍 Solo</button>
+          <button class="option-btn" data-value="couple" onclick="selectOption(this,1)">💑 Couple</button>
+          <button class="option-btn" data-value="family" onclick="selectOption(this,1)">👨‍👩‍👧‍👦 Family</button>
+          <button class="option-btn" data-value="friends" onclick="selectOption(this,1)">🍻 Friends</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Neighbourhood -->
+      <div class="quiz-step" data-step="2">
+        <div class="quiz-question">Where are you based or want to explore?</div>
+        <div class="quiz-options">
+          <button class="option-btn" data-value="downtown" onclick="selectOption(this,2)">🏙️ Downtown / Old City Quarter</button>
+          <button class="option-btn" data-value="north" onclick="selectOption(this,2)">🌲 North Nanaimo / Hammond Bay</button>
+          <button class="option-btn" data-value="departure" onclick="selectOption(this,2)">🌊 Departure Bay / Brechin</button>
+          <button class="option-btn" data-value="south" onclick="selectOption(this,2)">🏘️ South Nanaimo / Chase River</button>
+          <button class="option-btn" data-value="parksville" onclick="selectOption(this,2)">🌿 Parksville / Qualicum Beach</button>
+          <button class="option-btn" data-value="surprise" onclick="selectOption(this,2)">🗺️ Surprise Me</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Vibe (multi) -->
+      <div class="quiz-step" data-step="3">
+        <div class="quiz-question">What's the vibe?</div>
+        <div class="quiz-hint">Pick as many as you like</div>
+        <div class="quiz-options grid-2">
+          <button class="option-btn" data-value="outdoors" onclick="toggleMulti(this,3)">🌲 Outdoors</button>
+          <button class="option-btn" data-value="food" onclick="toggleMulti(this,3)">🍽️ Food & Drink</button>
+          <button class="option-btn" data-value="arts" onclick="toggleMulti(this,3)">🏛️ Arts & Culture</button>
+          <button class="option-btn" data-value="active" onclick="toggleMulti(this,3)">🚴 Active</button>
+          <button class="option-btn" data-value="relaxed" onclick="toggleMulti(this,3)">☕ Relaxed</button>
+          <button class="option-btn" data-value="nightlife" onclick="toggleMulti(this,3)">🌙 Nightlife</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Budget -->
+      <div class="quiz-step" data-step="4">
+        <div class="quiz-question">What's the budget feeling like?</div>
+        <div class="quiz-options">
+          <button class="option-btn" data-value="free" onclick="selectOption(this,4)">🎁 Keep It Free</button>
+          <button class="option-btn" data-value="low" onclick="selectOption(this,4)">💸 Under $50</button>
+          <button class="option-btn" data-value="moderate" onclick="selectOption(this,4)">🍴 Moderate</button>
+          <button class="option-btn" data-value="splurge" onclick="selectOption(this,4)">🥂 Treat Ourselves</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Duration -->
+      <div class="quiz-step" data-step="5">
+        <div class="quiz-question">How much of the weekend?</div>
+        <div class="quiz-options">
+          <button class="option-btn" data-value="few-hours" onclick="selectOption(this,5)">⏱️ A few hours</button>
+          <button class="option-btn" data-value="full-day" onclick="selectOption(this,5)">☀️ Full day</button>
+          <button class="option-btn" data-value="full-weekend" onclick="selectOption(this,5)">🗓️ Full weekend</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 6: Dietary (multi) -->
+      <div class="quiz-step" data-step="6">
+        <div class="quiz-question">Any dietary preferences?</div>
+        <div class="quiz-hint">Pick all that apply — skip if none</div>
+        <div class="quiz-options grid-2">
+          <button class="option-btn multi-selected" data-value="none" onclick="toggleMulti(this,6)">✅ No restrictions</button>
+          <button class="option-btn" data-value="vegetarian" onclick="toggleMulti(this,6)">🥗 Vegetarian</button>
+          <button class="option-btn" data-value="vegan" onclick="toggleMulti(this,6)">🌱 Vegan</button>
+          <button class="option-btn" data-value="gluten-free" onclick="toggleMulti(this,6)">🌾 Gluten Free</button>
+          <button class="option-btn" data-value="halal" onclick="toggleMulti(this,6)">🍖 Halal</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 7: Local status -->
+      <div class="quiz-step" data-step="7">
+        <div class="quiz-question">How settled are you in Nanaimo, <span class="name-ph"></span>?</div>
+        <div class="quiz-options">
+          <button class="option-btn" data-value="local" onclick="selectOption(this,7)">🏡 Love where I live</button>
+          <button class="option-btn" data-value="exploring" onclick="selectOption(this,7)">🗺️ Still exploring</button>
+          <button class="option-btn" data-value="new" onclick="selectOption(this,7)">📍 New to Nanaimo</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 8: Time on Island -->
+      <div class="quiz-step" data-step="8">
+        <div class="quiz-question">How long have you been on the Island?</div>
+        <div class="quiz-options">
+          <button class="option-btn" data-value="just-arrived" onclick="selectOption(this,8)">🌱 Just arrived</button>
+          <button class="option-btn" data-value="1-2years" onclick="selectOption(this,8)">🌿 1–2 years</button>
+          <button class="option-btn" data-value="3-5years" onclick="selectOption(this,8)">🌳 3–5 years</button>
+          <button class="option-btn" data-value="longtime" onclick="selectOption(this,8)">🏔️ Long-time local</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-continue" onclick="nextStep()" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 9: Home type -->
+      <div class="quiz-step" data-step="9">
+        <div class="quiz-question">What's your home base like?</div>
+        <div class="quiz-hint">Helps us match outdoor activities to your setup</div>
+        <div class="quiz-options">
+          <button class="option-btn" data-value="condo" onclick="selectOption(this,9)">🏢 Condo / apartment</button>
+          <button class="option-btn" data-value="house" onclick="selectOption(this,9)">🏡 House with yard</button>
+          <button class="option-btn" data-value="townhouse" onclick="selectOption(this,9)">🏘️ Townhouse</button>
+          <button class="option-btn" data-value="unsure" onclick="selectOption(this,9)">🤔 Still figuring that out</button>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-back" onclick="prevStep()">← Back</button>
+          <button class="btn-build" onclick="buildPlan()">Build My Weekend →</button>
+        </div>
+      </div>
+
+      <!-- Building animation -->
+      <div id="quiz-building" class="hidden" style="padding:8px 0 4px;">
+        <div style="text-align:center;padding-bottom:8px;">
+          <div class="spinner"></div>
+          <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;">Aime is pulling this together just for you</div>
+          <ul class="building-steps" id="building-steps">
+            <li>✦ Understanding your vibe</li>
+            <li>✦ Selecting the best Nanaimo spots</li>
+            <li>✦ Mapping your route</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PLAN SECTION -->
+  <div class="section" id="plan-section">
+    <div class="plan-header">
+      <h2>Here's what we picked for you</h2>
+      <p id="plan-subtitle">Curated for Nanaimo</p>
+    </div>
+
+    <div class="plan-body" id="plan-body">
+      <div id="plan-items" class="plan-blurred"></div>
+      <div class="blur-overlay" id="blur-overlay">
+        <div class="countdown-badge" id="countdown-badge">Save before it blurs — 0:30</div>
+        <div class="blur-cta">Your adventure is mapped ✨</div>
+        <div class="blur-sub">tap below to claim it</div>
+      </div>
+    </div>
+
+    <!-- Share (shown after lead submit) -->
+    <div class="share-section" id="share-section">
+      <div class="share-title">Share your plan 👇</div>
+      <p class="share-note">Check out this custom Nanaimo weekend plan — get yours free in 2 minutes</p>
+      <div class="share-buttons">
+        <button class="btn-share" onclick="shareCopy()">🔗 Copy Link</button>
+        <button class="btn-share" onclick="shareWhatsApp()">💬 WhatsApp</button>
+        <span class="copy-confirm" id="copy-confirm">✓ Link copied to clipboard!</span>
+      </div>
+    </div>
+
+    <!-- Lead form -->
+    <div id="lead-form-section">
+      <div class="lead-capture">
+        <h3>Your plan is ready! 🎉</h3>
+        <p class="lead-sub">We built you something great. Drop your details and we'll send the full plan to your phone — with maps, tips, and everything you need to have an amazing weekend.</p>
+
+        <div class="form-row">
+          <input type="text" class="form-input" id="lead-first" placeholder="First name" autocomplete="given-name">
+          <input type="text" class="form-input" id="lead-last" placeholder="Last name" autocomplete="family-name">
+        </div>
+        <input type="email" class="form-input form-input-full" id="lead-email" placeholder="Email address" autocomplete="email">
+        <input type="tel" class="form-input form-input-full" id="lead-phone" placeholder="Mobile number (for text plan)" autocomplete="tel">
+
+        <div class="opt-in-row" id="opt-in-row" onclick="toggleOptIn()">
+          <input type="checkbox" class="opt-in-checkbox" id="opt-in-cb" required>
+          <label class="opt-in-label" for="opt-in-cb" onclick="event.stopPropagation()">
+            I agree to receive my weekend plan and occasional local tips from Hans Suhr.
+            <a href="/unsubscribe" onclick="event.stopPropagation()">Unsubscribe</a> at any time.
+            <a href="/privacy" onclick="event.stopPropagation()">Privacy Policy</a>
+          </label>
+        </div>
+
+        <div class="form-error" id="form-error"></div>
+
+        <button class="btn-claim" id="btn-claim" onclick="submitLead()">
+          Claim My Weekend Plan 🗺️
+        </button>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="success-state" id="success-state">
+      <div class="success-icon">🎉</div>
+      <h3>You're all set — have an amazing weekend!</h3>
+      <p>Your full plan is revealed above. We've sent a copy to your email and phone so you're good to go.</p>
+      <button class="btn-restart" onclick="restartQuiz()">Plan a Different Weekend</button>
+    </div>
+
+  </div><!-- /plan-section -->
+
+</div><!-- /main-content -->
+
+<!-- Voice building overlay -->
+<div class="voice-overlay" id="voice-overlay">
+  <div class="spinner"></div>
+  <h3>Building your plan...</h3>
+  <p>Give us about 15 seconds. We'll scroll you down when it's ready.</p>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="remax-badge">RE/MAX</div>
+  <div class="footer-name">Hans Suhr, REALTOR®</div>
+  <div class="footer-sub">RE/MAX Anchor Realty · Nanaimo, Parksville, Qualicum Beach &amp; Nanoose Bay specialist</div>
+  <div class="footer-links">
+    <a href="https://hanssuhr.ca" target="_blank" rel="noopener">hanssuhr.ca</a>
+    <a href="mailto:hans@hanssuhr.ca">hans@hanssuhr.ca</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/unsubscribe">Unsubscribe</a>
+  </div>
+  <div class="footer-copy">© 2026 Nanaimo Local Guides. All rights reserved.</div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+// ──────────────────────────────────────────────────────────
+// CONFIGURATION  ← fill these before deploying
+// ──────────────────────────────────────────────────────────
+const CONFIG = {
+  VAPI_PUBLIC_KEY:   'YOUR_VAPI_PUBLIC_KEY',    // from app.vapi.ai → Account
+  VAPI_ASSISTANT_ID: 'YOUR_VAPI_ASSISTANT_ID',  // from app.vapi.ai → Assistants
+  SITE_URL: 'https://nanaimo-local-guides.pages.dev',
+  LEAD_API:  '/api/lead',
+};
+
+// ──────────────────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────────────────
+let step = 0;
+const STEPS = 10;
+let answers = freshAnswers();
+let plan = null;
+let countdownTimer = null;
+let vapi = null;
+let voiceActive = false;
+
+function freshAnswers() {
+  return { name:'', group:'', hood:'', vibes:[], budget:'', duration:'', dietary:['none'], settled:'', tenure:'', home:'' };
+}
+
+// ──────────────────────────────────────────────────────────
+// QUIZ NAVIGATION
+// ──────────────────────────────────────────────────────────
+function buildProgress() {
+  const bar = document.getElementById('quiz-progress');
+  bar.innerHTML = '';
+  for (let i = 0; i < STEPS; i++) {
+    const d = document.createElement('div');
+    d.className = 'progress-dot' + (i < step ? ' done' : i === step ? ' active' : '');
+    bar.appendChild(d);
+  }
+}
+
+function showStep(n) {
+  document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+  const el = document.querySelector(`[data-step="${n}"]`);
+  if (el) el.classList.add('active');
+  buildProgress();
+  document.querySelectorAll('.name-ph').forEach(el => el.textContent = answers.name || '');
+}
+
+function nextStep() {
+  if (step === 0) {
+    const v = document.getElementById('name-input').value.trim();
+    if (!v) { document.getElementById('name-input').focus(); return; }
+    answers.name = v;
+  }
+  if (step < STEPS - 1) {
+    step++;
+    showStep(step);
+    document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function prevStep() {
+  if (step > 0) { step--; showStep(step); }
+}
+
+function selectOption(btn, s) {
+  btn.closest('.quiz-options').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const v = btn.dataset.value;
+  if (s === 1) answers.group    = v;
+  if (s === 2) answers.hood     = v;
+  if (s === 4) answers.budget   = v;
+  if (s === 5) answers.duration = v;
+  if (s === 7) answers.settled  = v;
+  if (s === 8) answers.tenure   = v;
+  if (s === 9) answers.home     = v;
+  const cont = document.querySelector(`[data-step="${s}"] .btn-continue`);
+  if (cont) cont.disabled = false;
+}
+
+function toggleMulti(btn, s) {
+  btn.classList.toggle('multi-selected');
+  const sel = [...btn.closest('.quiz-options').querySelectorAll('.multi-selected')].map(b => b.dataset.value);
+  if (s === 3) answers.vibes   = sel;
+  if (s === 6) answers.dietary = sel.length ? sel : ['none'];
+}
+
+// ──────────────────────────────────────────────────────────
+// PLAN CONTENT LIBRARY
+// ──────────────────────────────────────────────────────────
+const SPOTS = {
+  morning: [
+    { e:'☕', name:'The Vault Café',        loc:'Old City Quarter',   time:'9:00 AM',  price:'$',      desc:'Heritage building, exposed brick, exceptional eggs benny. Locals have been protecting this one for years.',                                 tags:['food','relaxed','downtown','any'] },
+    { e:'🥐', name:'Serious Coffee',         loc:'Hammond Bay Rd',     time:'8:30 AM',  price:'$',      desc:'Best flat white on the Island. Grab a window seat and watch the inlet wake up.',                                                          tags:['food','relaxed','north','any'] },
+    { e:'🌄', name:'Neck Point Park',        loc:'North Nanaimo',      time:'7:30 AM',  price:'Free',   desc:'Rocky shoreline, tide pools, and views of the islands at first light. Go at low tide.',                                                   tags:['outdoors','active','north'] },
+    { e:'🌲', name:'Bowen Park Morning Walk',loc:'Central Nanaimo',    time:'8:00 AM',  price:'Free',   desc:'Old-growth trees, Millstone River trail, duck pond. Quiet even on weekends.',                                                             tags:['outdoors','relaxed','any'] },
+    { e:'🧇', name:'Mon Petit Choux',        loc:'Downtown',           time:'9:00 AM',  price:'$',      desc:'Proper French-inspired breakfast. Croissants worth getting out of bed early for.',                                                        tags:['food','relaxed','downtown'] },
+    { e:'🌅', name:'Departure Bay Beach',    loc:'Departure Bay',      time:'8:00 AM',  price:'Free',   desc:'Sandy beach to yourself in the morning, water warming up fast in season. Best for an early walk or swim.',                               tags:['outdoors','relaxed','departure','any'] },
+  ],
+  midday: [
+    { e:'🏝️', name:'Newcastle Island Provincial Marine Park', loc:'Nanaimo Harbour',    time:'11:00 AM', price:'Free–$', desc:'10-minute passenger ferry from downtown. Walk the shoreline trail, find a beach, catch the seals. Pack lunch.',          tags:['outdoors','active','relaxed','any'] },
+    { e:'🧗', name:'Mount Benson Regional Park',              loc:'South Nanaimo',       time:'10:30 AM', price:'Free',   desc:'45-minute hike to a panoramic view of the Strait. Well-marked trail, dog-friendly. Earn your lunch.',                    tags:['active','outdoors','south','any'] },
+    { e:'🚴', name:'Nanaimo Parkway Multi-Use Trail',         loc:'Multiple access pts', time:'10:00 AM', price:'Free',   desc:'45km of connected trails through the city. Rent bikes downtown or bring your own.',                                       tags:['active','outdoors','any'] },
+    { e:'🪨', name:'Petroglyph Provincial Park',              loc:'South Nanaimo',       time:'11:00 AM', price:'Free',   desc:'Ancient Coast Salish rock carvings, some over 1,000 years old. Short, respectful visit — genuinely moving.',              tags:['arts','outdoors','south'] },
+    { e:'🌿', name:'Morrell Nature Sanctuary',                loc:'Central Nanaimo',     time:'10:30 AM', price:'Free',   desc:'Old-growth forest loop trail with a quiet lake at the centre. Remarkably peaceful 5 minutes from the highway.',          tags:['outdoors','relaxed','any'] },
+    { e:'🏛️', name:'Nanaimo Museum',                          loc:'Old City Quarter',    time:'11:00 AM', price:'$',      desc:'Better than expected. The coal mining history and Hudson\'s Bay trading post exhibits are genuinely interesting.',        tags:['arts','relaxed','downtown'] },
+    { e:'🌊', name:'Pipers Lagoon Park',                      loc:'Hammond Bay',         time:'11:00 AM', price:'Free',   desc:'Peninsula trail with lagoon on one side and open ocean on the other. One of the best waterfront walks in Nanaimo.',       tags:['outdoors','relaxed','north'] },
+  ],
+  afternoon: [
+    { e:'🍟', name:'Pirate Chips',                  loc:'Downtown Harbour',  time:'1:00 PM',  price:'$$',  desc:'Famous halibut and chips, paper cone, eaten on the harbour wall. This is one you\'ll tell people about.',                  tags:['food','any'] },
+    { e:'🍺', name:'Longwood Brew Pub',              loc:'North Nanaimo',     time:'1:30 PM',  price:'$$',  desc:'Best craft beer on the Island. The brown ale is the move. Book ahead on weekends — the patio fills fast.',                tags:['food','nightlife','north'] },
+    { e:'🍸', name:'White Sails Brewing',            loc:'Downtown Harbour',  time:'2:00 PM',  price:'$$',  desc:'Waterfront brewery, harbour views. The IPA and the outlook go perfectly together.',                                       tags:['food','relaxed','downtown'] },
+    { e:'🍣', name:'Wasabi Japanese Restaurant',     loc:'Downtown',          time:'12:30 PM', price:'$$',  desc:'Fresh sashimi and properly made nigiri. Unassuming from outside. Order whatever the chef highlights.',                    tags:['food','downtown'] },
+    { e:'🎭', name:'Port Theatre',                   loc:'Downtown',          time:'2:00 PM',  price:'$$',  desc:'Check the weekend schedule — local productions and touring acts. One of the best small theatres on the Island.',          tags:['arts','relaxed','downtown'] },
+    { e:'🦐', name:'Dinghy Dock Pub',                loc:'Protection Island', time:'5:00 PM',  price:'$$',  desc:'Canada\'s only floating marine pub. Short ferry from downtown — call for last boat times. Order the chowder.',            tags:['food','nightlife','any'] },
+    { e:'🖼️', name:'Nanaimo Art Gallery',            loc:'Old City Quarter',  time:'1:00 PM',  price:'$',   desc:'Rotating local and regional exhibitions. Surprisingly strong collection. Free entry on the last Sunday of the month.',   tags:['arts','relaxed','downtown'] },
+  ],
+  evening: [
+    { e:'🥩', name:'Wesley Street Restaurant',       loc:'Old City Quarter',  time:'6:30 PM',  price:'$$$', desc:'Chef-driven fine dining with local ingredients. This is the meal of the trip — book at least a week ahead.',             tags:['food','splurge','any'] },
+    { e:'🍺', name:'Longwood Brew Pub (evening)',     loc:'North Nanaimo',     time:'6:00 PM',  price:'$$',  desc:'Excellent pub food and local craft beer. The padron peppers and calamari go fast.',                                     tags:['food','nightlife','north'] },
+    { e:'🌙', name:'Old City Quarter Walkabout',      loc:'Old City Quarter',  time:'7:00 PM',  price:'Free',desc:'Stroll the heritage streetscape, pop into galleries and indie shops. The quarter is best at dusk.',                     tags:['arts','relaxed','downtown'] },
+    { e:'🌅', name:'Neck Point Sunset',               loc:'North Nanaimo',     time:'8:00 PM',  price:'Free',desc:'Rocky promontory with unobstructed views west over the Strait. One of the best free sunsets on the Island.',            tags:['outdoors','relaxed','north','any'] },
+    { e:'🎶', name:'The Queens Hotel',                loc:'Downtown',          time:'8:00 PM',  price:'$',   desc:'Live music most weekends, cold beer, central location. One of Nanaimo\'s best dive bars — in the best way.',            tags:['nightlife','downtown'] },
+  ],
+  parksville: [
+    { e:'🏖️', name:'Parksville Beach',                    loc:'Parksville',          time:'11:00 AM', price:'Free',  desc:'One of the warmest-water beaches on Vancouver Island. Shallow bay heats up fast in summer. Great for kids.',       tags:['outdoors','active','relaxed','family'] },
+    { e:'🌊', name:'Rathtrevor Beach Provincial Park',     loc:'Parksville',          time:'10:00 AM', price:'Free–$',desc:'Classic BC provincial park beach — 2km of sand, old-growth forest trails behind the dunes.',                   tags:['outdoors','relaxed','any'] },
+    { e:'🌲', name:'Englishman River Falls Provincial Park',loc:'Parksville area',    time:'10:30 AM', price:'Free',  desc:'Short hike to two dramatic waterfalls through second-growth forest. Easy for families, beautiful year-round.',   tags:['outdoors','active','any'] },
+    { e:'☕', name:'Kalvas Restaurant',                    loc:'Qualicum Beach',      time:'9:00 AM',  price:'$',     desc:'Old-school Qualicum classic. Breakfast with locals who\'ve been coming here for 30 years.',                      tags:['food','relaxed'] },
+    { e:'🛍️', name:'Qualicum Beach Village Stroll',       loc:'Qualicum Beach',      time:'2:00 PM',  price:'Free',  desc:'Walkable village with galleries, boutiques, and ice cream. Low-key, genuinely charming.',                       tags:['arts','relaxed'] },
+    { e:'🌿', name:'Little Qualicum River Trail',          loc:'Cameron Lake area',   time:'11:00 AM', price:'Free',  desc:'Quiet forested walk along the river. Swimming holes in summer. Often bypassed by tourists — good.',             tags:['outdoors','active','relaxed'] },
+  ],
+};
+
+// ──────────────────────────────────────────────────────────
+// PLAN GENERATION
+// ──────────────────────────────────────────────────────────
+function pick(arr, exclude) {
+  const pool = arr.filter(i => !exclude.includes(i));
+  return pool[Math.floor(Math.random() * pool.length)] || arr[0];
+}
+
+function generatePlan(a) {
+  const out = [];
+  const hood = a.hood;
+  const vibes = a.vibes.length ? a.vibes : ['outdoors','food'];
+  const budget = a.budget || 'moderate';
+  const dur = a.duration || 'full-day';
+
+  const matchHood = item =>
+    item.tags.includes('any') ||
+    (hood === 'downtown'  && item.tags.includes('downtown'))  ||
+    (hood === 'north'     && (item.tags.includes('north') || item.tags.includes('any'))) ||
+    (hood === 'departure' && (item.tags.includes('departure') || item.tags.includes('any'))) ||
+    (hood === 'south'     && (item.tags.includes('south') || item.tags.includes('any'))) ||
+    (hood === 'parksville'&& true) ||
+    (hood === 'surprise'  && true);
+
+  const budgetOK = item =>
+    budget === 'splurge' ? true :
+    budget === 'free'    ? (item.price === 'Free' || item.price === 'Free–$') :
+    item.price !== '$$$';
+
+  // 1. Morning
+  const morningPool = SPOTS.morning.filter(i => matchHood(i) && budgetOK(i));
+  const m = pick(morningPool.length ? morningPool : SPOTS.morning, out);
+  out.push(m);
+
+  // 2. Midday — parksville gets its own pool
+  let middayPool;
+  if (hood === 'parksville') {
+    middayPool = SPOTS.parksville.filter(i => i.tags.includes('outdoors') || i.tags.includes('relaxed'));
+  } else {
+    middayPool = SPOTS.midday.filter(i => matchHood(i) && budgetOK(i) && (
+      vibes.some(v => i.tags.includes(v)) || true
+    ));
+  }
+  const md = pick(middayPool.length ? middayPool : SPOTS.midday, out);
+  out.push(md);
+
+  // 3. Afternoon (food focus)
+  const afPool = SPOTS.afternoon.filter(i => matchHood(i) && budgetOK(i));
+  out.push(pick(afPool.length ? afPool : SPOTS.afternoon, out));
+
+  // 4. Extra stop for full day
+  if (dur === 'full-day' || dur === 'full-weekend') {
+    const allExtra = [...SPOTS.midday, ...SPOTS.afternoon, ...SPOTS.parksville].filter(i => !out.includes(i) && budgetOK(i) && matchHood(i));
+    if (allExtra.length) out.push(pick(allExtra, []));
+  }
+
+  // 5. Evening
+  if (dur !== 'few-hours') {
+    const evPool = SPOTS.evening.filter(i => matchHood(i) && budgetOK(i));
+    out.push(pick(evPool.length ? evPool : SPOTS.evening, out));
+  }
+
+  // 6. Sunday bonus for full weekend
+  if (dur === 'full-weekend') {
+    const sunday = hood === 'parksville'
+      ? SPOTS.parksville.filter(i => !out.includes(i))
+      : [...SPOTS.morning, ...SPOTS.midday].filter(i => !out.includes(i) && matchHood(i));
+    if (sunday.length) out.push(pick(sunday, []));
+  }
+
+  return out;
+}
+
+function renderPlan(items) {
+  document.getElementById('plan-items').innerHTML = items.map(i => `
+    <div class="plan-item">
+      <div class="pi-row">
+        <div class="pi-emoji">${i.e}</div>
+        <div style="flex:1;">
+          <div class="pi-name">${i.name}</div>
+          <div class="pi-meta">📍 ${i.loc} &nbsp;⏰ ${i.time} &nbsp;${i.price}</div>
+          <div class="pi-desc">${i.desc}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function buildPlan() {
+  // Hide quiz steps, show building animation
+  document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('quiz-building').classList.remove('hidden');
+  buildProgress();
+
+  const steps = document.querySelectorAll('#building-steps li');
+  let si = 0;
+  const iv = setInterval(() => {
+    if (si > 0) {
+      steps[si-1].className = 'done';
+      steps[si-1].textContent = '✓ ' + steps[si-1].textContent.replace('✦ ', '');
+    }
+    if (si < steps.length) { steps[si].className = 'active'; si++; }
+    else clearInterval(iv);
+  }, 650);
+
+  setTimeout(() => {
+    clearInterval(iv);
+    plan = generatePlan(answers);
+    renderPlan(plan);
+    showPlanSection();
+  }, 2200);
+}
+
+function showPlanSection() {
+  document.getElementById('quiz-section').style.display = 'none';
+  const ps = document.getElementById('plan-section');
+  ps.classList.add('visible');
+  const hoodLabel = {
+    downtown:'Downtown Nanaimo', north:'North Nanaimo', departure:'Departure Bay',
+    south:'South Nanaimo', parksville:'Parksville & Qualicum Beach', surprise:'Nanaimo'
+  }[answers.hood] || 'Nanaimo';
+  document.getElementById('plan-subtitle').textContent = `Curated for ${hoodLabel} · Built for ${answers.name || 'you'}`;
+  startCountdown();
+  setTimeout(() => ps.scrollIntoView({ behavior:'smooth', block:'start' }), 300);
+}
+
+// ──────────────────────────────────────────────────────────
+// COUNTDOWN + REVEAL
+// ──────────────────────────────────────────────────────────
+function startCountdown() {
+  let s = 30;
+  const badge = document.getElementById('countdown-badge');
+  countdownTimer = setInterval(() => {
+    s--;
+    badge.textContent = `Save before it blurs — 0:${String(s).padStart(2,'0')}`;
+    if (s <= 0) {
+      clearInterval(countdownTimer);
+      document.getElementById('plan-items').classList.add('plan-blurred');
+    }
+  }, 1000);
+}
+
+function revealPlan() {
+  clearInterval(countdownTimer);
+  document.getElementById('plan-items').classList.remove('plan-blurred');
+  document.getElementById('plan-items').classList.add('plan-revealed');
+  document.getElementById('blur-overlay').classList.add('hidden');
+  document.getElementById('share-section').style.display = 'block';
+  document.getElementById('lead-form-section').style.display = 'none';
+  document.getElementById('success-state').classList.add('visible');
+}
+
+// ──────────────────────────────────────────────────────────
+// OPT-IN TOGGLE (row click)
+// ──────────────────────────────────────────────────────────
+function toggleOptIn() {
+  const cb = document.getElementById('opt-in-cb');
+  cb.checked = !cb.checked;
+  document.getElementById('opt-in-row').classList.remove('error-border');
+}
+
+// ──────────────────────────────────────────────────────────
+// LEAD SUBMIT → /api/lead (Cloudflare Pages Function)
+// ──────────────────────────────────────────────────────────
+function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function validPhone(p) { return p.replace(/\D/g,'').length >= 10; }
+
+async function submitLead() {
+  const first  = document.getElementById('lead-first').value.trim();
+  const last   = document.getElementById('lead-last').value.trim();
+  const email  = document.getElementById('lead-email').value.trim();
+  const phone  = document.getElementById('lead-phone').value.trim();
+  const cb     = document.getElementById('opt-in-cb');
+  const errEl  = document.getElementById('form-error');
+  const optRow = document.getElementById('opt-in-row');
+
+  // Reset
+  errEl.classList.remove('visible');
+  optRow.classList.remove('error-border');
+  ['lead-email','lead-phone'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+  // Require at least email OR phone
+  if (!email && !phone) {
+    showFormError('Please enter your email or mobile number — we need one to send your plan.');
+    document.getElementById('lead-email').classList.add('error');
+    document.getElementById('lead-phone').classList.add('error');
+    return;
+  }
+  if (email && !validEmail(email)) {
+    showFormError('Please enter a valid email address.');
+    document.getElementById('lead-email').classList.add('error');
+    return;
+  }
+  if (phone && !validPhone(phone)) {
+    showFormError('Please enter a valid mobile number (at least 10 digits).');
+    document.getElementById('lead-phone').classList.add('error');
+    return;
+  }
+  if (!cb.checked) {
+    showFormError('Please check the box above — it confirms you\'d like to receive your plan.');
+    optRow.classList.add('error-border');
+    optRow.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+
+  // Disable + spinner
+  const btn = document.getElementById('btn-claim');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0 8px 0 0;"></div> Sending...';
+
+  const planText = plan
+    ? plan.map(i => `${i.e} ${i.name} (${i.loc}, ${i.time}) — ${i.desc}`).join('\n\n')
+    : '';
+
+  try {
+    const res = await fetch(CONFIG.LEAD_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: first || answers.name || '',
+        lastName:  last,
+        email,
+        phone,
+        preferences: answers,
+        planText,
+        source: 'Nanaimo Weekend Planner',
+        optIn: true,
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || 'Server error');
+    }
+
+    revealPlan();
+
+  } catch (err) {
+    console.error('Lead submit error:', err);
+    showFormError('Something went wrong — please try again or email hans@hanssuhr.ca directly.');
+    btn.disabled = false;
+    btn.innerHTML = 'Claim My Weekend Plan 🗺️';
+  }
+}
+
+function showFormError(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// ──────────────────────────────────────────────────────────
+// SHARE
+// ──────────────────────────────────────────────────────────
+function shareCopy() {
+  navigator.clipboard.writeText(CONFIG.SITE_URL).then(() => {
+    const c = document.getElementById('copy-confirm');
+    c.style.display = 'inline';
+    setTimeout(() => c.style.display = 'none', 2500);
+  });
+}
+function shareWhatsApp() {
+  const txt = encodeURIComponent('Check out this custom Nanaimo weekend plan — get yours free in 2 minutes: ' + CONFIG.SITE_URL);
+  window.open('https://wa.me/?text=' + txt, '_blank');
+}
+
+// ──────────────────────────────────────────────────────────
+// VOICE (Vapi.ai)
+// ──────────────────────────────────────────────────────────
+function initVapi() {
+  if (typeof Vapi === 'undefined' || CONFIG.VAPI_PUBLIC_KEY === 'YOUR_VAPI_PUBLIC_KEY') return;
+  try {
+    vapi = new Vapi(CONFIG.VAPI_PUBLIC_KEY);
+
+    vapi.on('call-start', () => {
+      voiceActive = true;
+      document.getElementById('voice-orb').classList.add('active');
+      document.getElementById('voice-status').textContent = 'Connected — go ahead and speak';
+      document.getElementById('voice-status').className = 'voice-status connected';
+      document.getElementById('voice-controls').classList.add('visible');
+      document.getElementById('btn-start-voice').style.display = 'none';
+    });
+
+    vapi.on('speech-start', () => {
+      document.getElementById('voice-status').textContent = 'Listening...';
+      document.getElementById('voice-status').className = 'voice-status listening';
+    });
+
+    vapi.on('speech-end', () => {
+      document.getElementById('voice-status').textContent = 'Processing...';
+      document.getElementById('voice-status').className = 'voice-status';
+    });
+
+    vapi.on('call-end', () => {
+      voiceActive = false;
+      document.getElementById('voice-orb').classList.remove('active');
+      document.getElementById('voice-status').textContent = '';
+      document.getElementById('voice-status').className = 'voice-status';
+      document.getElementById('voice-controls').classList.remove('visible');
+      document.getElementById('btn-start-voice').style.display = 'inline-flex';
+
+      // Show build overlay, then generate plan
+      document.getElementById('voice-overlay').classList.add('visible');
+      setTimeout(() => {
+        document.getElementById('voice-overlay').classList.remove('visible');
+        if (!answers.name)           answers.name     = 'Explorer';
+        if (!answers.group)          answers.group    = 'solo';
+        if (!answers.hood)           answers.hood     = 'downtown';
+        if (!answers.budget)         answers.budget   = 'moderate';
+        if (!answers.duration)       answers.duration = 'full-day';
+        if (!answers.vibes.length)   answers.vibes    = ['outdoors','food'];
+        plan = generatePlan(answers);
+        renderPlan(plan);
+        showPlanSection();
+        document.getElementById('quiz-section').style.display = 'none';
+      }, 3200);
+    });
+
+    vapi.on('error', err => {
+      console.error('Vapi error:', err);
+      document.getElementById('voice-status').textContent = 'Unable to connect — use Chat below ↓';
+      voiceActive = false;
+    });
+
+    // Capture structured preferences from Vapi function call
+    vapi.on('message', msg => {
+      if (msg.type === 'function-call' && msg.functionCall?.name === 'setPreferences') {
+        const p = msg.functionCall.parameters;
+        if (p.name)         answers.name     = p.name;
+        if (p.neighbourhood) answers.hood    = p.neighbourhood;
+        if (p.vibes)        answers.vibes    = p.vibes;
+        if (p.budget)       answers.budget   = p.budget;
+        if (p.duration)     answers.duration = p.duration;
+        if (p.group)        answers.group    = p.group;
+      }
+    });
+  } catch(e) {
+    console.warn('Vapi init failed:', e);
+  }
+}
+
+function toggleVoice() {
+  if (!vapi) {
+    document.getElementById('voice-status').textContent = 'Voice coming soon — use Chat below ↓';
+    setTimeout(() => document.getElementById('quiz-section').scrollIntoView({ behavior:'smooth', block:'start' }), 1200);
+    return;
+  }
+  voiceActive ? endVoiceCall() : startVoiceCall();
+}
+
+function startVoiceCall() {
+  if (!vapi || CONFIG.VAPI_ASSISTANT_ID === 'YOUR_VAPI_ASSISTANT_ID') return;
+  voiceActive = true;
+  vapi.start(CONFIG.VAPI_ASSISTANT_ID);
+}
+
+function endVoiceCall() {
+  if (vapi) vapi.stop();
+  voiceActive = false;
+}
+
+// ──────────────────────────────────────────────────────────
+// SCROLL SHORTCUTS
+// ──────────────────────────────────────────────────────────
+function scrollToVoice() {
+  document.getElementById('voice-section').scrollIntoView({ behavior:'smooth', block:'start' });
+  setTimeout(toggleVoice, 700);
+}
+function scrollToChat() {
+  document.getElementById('quiz-section').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ──────────────────────────────────────────────────────────
+// RESTART
+// ──────────────────────────────────────────────────────────
+function restartQuiz() {
+  answers = freshAnswers();
+  step = 0;
+  plan = null;
+  clearInterval(countdownTimer);
+
+  document.getElementById('plan-section').classList.remove('visible');
+  document.getElementById('quiz-section').style.display = 'block';
+  document.getElementById('quiz-building').classList.add('hidden');
+  document.getElementById('name-input').value = '';
+  document.getElementById('plan-items').innerHTML = '';
+  document.getElementById('plan-items').className = 'plan-blurred';
+  document.getElementById('blur-overlay').classList.remove('hidden');
+  document.getElementById('share-section').style.display = 'none';
+  document.getElementById('lead-form-section').style.display = 'block';
+  document.getElementById('success-state').classList.remove('visible');
+  document.getElementById('opt-in-cb').checked = false;
+  ['lead-first','lead-last','lead-email','lead-phone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('error'); }
+  });
+  document.getElementById('btn-claim').disabled = false;
+  document.getElementById('btn-claim').innerHTML = 'Claim My Weekend Plan 🗺️';
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected','multi-selected'));
+  const noneBtn = document.querySelector('[data-step="6"] [data-value="none"]');
+  if (noneBtn) noneBtn.classList.add('multi-selected');
+  showStep(0);
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ──────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildProgress();
+  showStep(0);
+  initVapi();
+
+  const nameIn = document.getElementById('name-input');
+  nameIn.addEventListener('input', e => {
+    document.getElementById('btn-continue-0').disabled = !e.target.value.trim();
+  });
+  nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') nextStep(); });
+});
+</script>
+</body>
+</html>

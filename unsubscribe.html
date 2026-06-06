@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unsubscribe | Nanaimo Local Guides</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F8F9FA; color: #1A2B4A; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+    .site-header { background: #1A2B4A; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 10px; }
+    .logo-badge { background: #E31837; color: #fff; font-weight: 800; font-size: 12px; padding: 4px 10px; border-radius: 6px; }
+    .brand-name { font-size: 15px; font-weight: 600; opacity: 0.9; }
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(26,43,74,0.12); padding: 36px 32px; max-width: 460px; width: 100%; text-align: center; }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+    .sub { font-size: 15px; color: #6B7280; margin-bottom: 28px; line-height: 1.5; }
+    .form-input {
+      width: 100%; padding: 14px 16px; border: 2px solid #E5E7EB; border-radius: 10px;
+      font-size: 16px; color: #1A2B4A; outline: none; transition: border-color 0.2s;
+      margin-bottom: 14px; -webkit-appearance: none;
+    }
+    .form-input:focus { border-color: #1A2B4A; }
+    .form-input.error { border-color: #E31837; }
+    .btn-unsub {
+      width: 100%; background: #1A2B4A; color: #fff; border: none;
+      padding: 15px; border-radius: 50px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-unsub:hover { background: #2C4A7A; }
+    .btn-unsub:disabled { opacity: 0.5; cursor: not-allowed; }
+    .form-error { font-size: 13px; color: #E31837; margin-bottom: 12px; }
+    .success { display: none; }
+    .success.visible { display: block; }
+    .form-area.hidden { display: none; }
+    .back-link { display: inline-block; margin-top: 20px; font-size: 14px; color: #6B7280; text-decoration: none; }
+    .back-link:hover { color: #1A2B4A; }
+    footer { background: #1A2B4A; color: rgba(255,255,255,0.5); padding: 20px; text-align: center; font-size: 12px; }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <span class="logo-badge">RE/MAX</span>
+  <span class="brand-name">Hans Suhr · Nanaimo Local Guides</span>
+</header>
+
+<main>
+  <div class="card">
+    <!-- Form state -->
+    <div class="form-area" id="form-area">
+      <div class="icon">📭</div>
+      <h1>Unsubscribe</h1>
+      <p class="sub">Enter your email below and we'll remove you from the Nanaimo Local Guides list immediately. No questions asked.</p>
+      <input type="email" class="form-input" id="unsub-email" placeholder="Your email address" autocomplete="email">
+      <p class="form-error" id="unsub-error" style="display:none;"></p>
+      <button class="btn-unsub" id="btn-unsub" onclick="submitUnsub()">Unsubscribe Me</button>
+      <a href="/" class="back-link">← Back to Weekend Planner</a>
+    </div>
+
+    <!-- Success state -->
+    <div class="success" id="success-area">
+      <div class="icon">✅</div>
+      <h1>You're unsubscribed</h1>
+      <p class="sub">We've removed you from the list. You won't receive any further emails or texts from the Nanaimo Local Guides.<br><br>If you ever want a new weekend plan, you're always welcome back.</p>
+      <a href="/" class="back-link">← Back to Weekend Planner</a>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 Nanaimo Local Guides · Hans Suhr, REALTOR® · RE/MAX Anchor Realty</footer>
+
+<script>
+// Pre-fill email from URL param e.g. /unsubscribe?email=user@example.com
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('email');
+  if (email) document.getElementById('unsub-email').value = decodeURIComponent(email);
+})();
+
+async function submitUnsub() {
+  const email = document.getElementById('unsub-email').value.trim();
+  const errEl = document.getElementById('unsub-error');
+  const btn   = document.getElementById('btn-unsub');
+
+  errEl.style.display = 'none';
+  document.getElementById('unsub-email').classList.remove('error');
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.';
+    errEl.style.display = 'block';
+    document.getElementById('unsub-email').classList.add('error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+
+  try {
+    const res = await fetch('/api/unsubscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error();
+    document.getElementById('form-area').classList.add('hidden');
+    document.getElementById('success-area').classList.add('visible');
+  } catch {
+    errEl.textContent = 'Something went wrong — please email hans@hanssuhr.ca directly to unsubscribe.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Unsubscribe Me';
+  }
+}
+</script>
+</body>
+</html>
