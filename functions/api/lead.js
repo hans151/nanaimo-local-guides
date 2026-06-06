@@ -38,6 +38,7 @@ export async function onRequestPost(context) {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${env.CINC_API_KEY}`,
+            'x-api-key': env.CINC_API_KEY,
           },
           body: JSON.stringify(cincPayload),
         });
