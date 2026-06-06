@@ -1,15 +1,11 @@
 /**
  * Cloudflare Pages Function — POST /api/lead
  *
- * Environment variables (Cloudflare Pages → Settings → Environment Variables):
+ * Environment variable (Cloudflare Pages → Settings → Environment Variables):
  *
- *   CINC_API_KEY   Your CINC Zapier API key (string)
- *
- * CINC endpoint: https://public.cincapi.com/v2/site/leads
- * Auth: Bearer token (your CINC Zapier API key)
+ *   CINC_WEBHOOK_URL   Zapier Catch Hook URL
+ *                      e.g. https://hooks.zapier.com/hooks/catch/27839633/4bp4ggq/
  */
-
-const CINC_ENDPOINT = 'https://public.cincapi.com/v2/site/leads';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -23,39 +19,58 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { firstName, lastName, email, phone, preferences, planText, source, timestamp } = body;
 
-    // Server-side validation — require email or phone
     if (!email && !phone) {
       return new Response(JSON.stringify({ error: 'Email or phone required.' }), { status: 400, headers });
     }
 
-    // ── Post lead to CINC ─────────────────────────────────────────────────
-    if (env.CINC_API_KEY) {
+    // ── POST to Zapier → CINC ─────────────────────────────────────────────
+    if (env.CINC_WEBHOOK_URL) {
       try {
-        const cincPayload = buildCincPayload({ firstName, lastName, email, phone, preferences, planText, source, timestamp });
+        const noteLines = [
+          `Source: Nanaimo Weekend Planner`,
+          `Submitted: ${timestamp || new Date().toISOString()}`,
+          `Neighbourhood: ${preferences?.hood || ''}`,
+          `Group: ${preferences?.group || ''}`,
+          `Vibe: ${(preferences?.vibes || []).join(', ')}`,
+          `Budget: ${preferences?.budget || ''}`,
+          `Duration: ${preferences?.duration || ''}`,
+          `Local status: ${preferences?.settled || ''}`,
+          `Time on Island: ${preferences?.tenure || ''}`,
+          `Dietary: ${(preferences?.dietary || []).join(', ')}`,
+        ];
+        if (planText) noteLines.push('', '--- PLAN SENT ---', planText);
 
-        const cincRes = await fetch(CINC_ENDPOINT, {
+        const payload = {
+          first_name:    firstName || '',
+          last_name:     lastName  || '',
+          email:         email     || '',
+          phone:         phone     || '',
+          source:        'Nanaimo Weekend Planner',
+          neighbourhood: preferences?.hood     || '',
+          group:         preferences?.group    || '',
+          vibes:         (preferences?.vibes   || []).join(', '),
+          budget:        preferences?.budget   || '',
+          notes:         noteLines.join('\n'),
+        };
+
+        const zapRes = await fetch(env.CINC_WEBHOOK_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${env.CINC_API_KEY}`,
-            'x-api-key': env.CINC_API_KEY,
-          },
-          body: JSON.stringify(cincPayload),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
 
-        const cincBody = await cincRes.text().catch(() => '');
-        if (!cincRes.ok) {
-          console.error('CINC error:', cincRes.status, cincBody);
-          // Return CINC error details temporarily for debugging
-          return new Response(JSON.stringify({ ok: false, cinc_status: cincRes.status, cinc_error: cincBody }), { status: 200, headers });
-        } else {
-          console.log('CINC lead created:', cincRes.status, cincBody);
+        const zapBody = await zapRes.text().catch(() => '');
+        if (!zapRes.ok) {
+          console.error('Zapier error:', zapRes.status, zapBody);
+          return new Response(JSON.stringify({ ok: false, zap_status: zapRes.status, zap_error: zapBody }), { status: 200, headers });
         }
-      } catch (cincErr) {
-        console.error('CINC fetch failed:', cincErr);
+        console.log('Zapier accepted lead:', zapRes.status);
+
+      } catch (err) {
+        console.error('Zapier fetch failed:', err);
       }
     } else {
-      console.warn('CINC_API_KEY not set — lead not forwarded to CRM');
+      console.warn('CINC_WEBHOOK_URL not set');
     }
 
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
@@ -66,7 +81,6 @@ export async function onRequestPost(context) {
   }
 }
 
-// CORS preflight
 export async function onRequestOptions() {
   return new Response(null, {
     status: 204,
@@ -76,49 +90,4 @@ export async function onRequestOptions() {
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Build CINC lead payload
-// CINC upsert endpoint keys on `username` (= email). All other fields optional.
-// Preferences and plan are captured as a pinned note for visibility in CINC.
-// ─────────────────────────────────────────────────────────────────────────────
-function buildCincPayload({ firstName, lastName, email, phone, preferences, planText, source, timestamp }) {
-  const noteLines = [
-    `Source: Nanaimo Weekend Planner`,
-    `Submitted: ${timestamp || new Date().toISOString()}`,
-    ``,
-    `--- PREFERENCES ---`,
-    `Neighbourhood: ${preferences?.hood || ''}`,
-    `Group: ${preferences?.group || ''}`,
-    `Vibe: ${(preferences?.vibes || []).join(', ')}`,
-    `Budget: ${preferences?.budget || ''}`,
-    `Duration: ${preferences?.duration || ''}`,
-    `Local status: ${preferences?.settled || ''}`,
-    `Time on Island: ${preferences?.tenure || ''}`,
-    `Dietary: ${(preferences?.dietary || []).join(', ')}`,
-  ];
-
-  if (planText) {
-    noteLines.push('', '--- PLAN SENT ---', planText);
-  }
-
-  return {
-    username: email || phone,          // required — CINC keys on this
-    info: {
-      first_name: firstName || '',
-      last_name:  lastName  || '',
-      contact: {
-        email: email || '',
-        phone: phone || '',
-      },
-    },
-    notes: [
-      {
-        content:   noteLines.join('\n'),
-        category:  'general',
-        is_pinned: true,
-      },
-    ],
-  };
 }
