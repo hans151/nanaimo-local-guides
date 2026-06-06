@@ -73,7 +73,7 @@ export async function onRequestPost(context) {
       console.warn('CINC_WEBHOOK_URL not set');
     }
 
-    return new Response(JSON.stringify({ ok: true, webhook_set: !!env.CINC_WEBHOOK_URL }), { status: 200, headers });
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 
   } catch (err) {
     console.error('Lead handler error:', err);
