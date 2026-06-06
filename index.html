@@ -882,14 +882,20 @@ function generatePlan(a) {
   const budget = a.budget || 'moderate';
   const dur = a.duration || 'full-day';
 
-  const matchHood = item =>
-    item.tags.includes('any') ||
+  // Strict: item specifically tagged for this hood
+  const matchHoodStrict = item =>
+    hood === 'surprise' ||
+    hood === 'parksville' ||
     (hood === 'downtown'  && item.tags.includes('downtown'))  ||
-    (hood === 'north'     && (item.tags.includes('north') || item.tags.includes('any'))) ||
-    (hood === 'departure' && (item.tags.includes('departure') || item.tags.includes('any'))) ||
-    (hood === 'south'     && (item.tags.includes('south') || item.tags.includes('any'))) ||
-    (hood === 'parksville'&& true) ||
-    (hood === 'surprise'  && true);
+    (hood === 'north'     && item.tags.includes('north'))     ||
+    (hood === 'departure' && item.tags.includes('departure')) ||
+    (hood === 'south'     && item.tags.includes('south'));
+
+  // Loose: also includes truly location-neutral spots ('any' with no specific hood tag)
+  const hoodTags = ['downtown','north','departure','south'];
+  const matchHood = item =>
+    matchHoodStrict(item) ||
+    (item.tags.includes('any') && !item.tags.some(t => hoodTags.includes(t)));
 
   const budgetOK = item =>
     budget === 'splurge' ? true :

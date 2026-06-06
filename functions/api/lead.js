@@ -42,12 +42,13 @@ export async function onRequestPost(context) {
           body: JSON.stringify(cincPayload),
         });
 
+        const cincBody = await cincRes.text().catch(() => '');
         if (!cincRes.ok) {
-          const errText = await cincRes.text().catch(() => 'unknown');
-          console.error('CINC error:', cincRes.status, errText);
-          // Log and continue — don't fail the user's form submission
+          console.error('CINC error:', cincRes.status, cincBody);
+          // Return CINC error details temporarily for debugging
+          return new Response(JSON.stringify({ ok: false, cinc_status: cincRes.status, cinc_error: cincBody }), { status: 200, headers });
         } else {
-          console.log('CINC lead created:', cincRes.status);
+          console.log('CINC lead created:', cincRes.status, cincBody);
         }
       } catch (cincErr) {
         console.error('CINC fetch failed:', cincErr);
